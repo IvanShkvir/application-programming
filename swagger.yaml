@@ -1,0 +1,465 @@
+openapi: 3.0.0
+info:
+  version: 3.0.0
+  title: 'Лабораторна робота варіант 14'
+  description: 'Створити сервіс для прокату авто. Користувачі сервісу можуть бути двох рівнів – адміністратори та пасажири. Адміністратори можуть додавати та видаляти авто із системи, редагувати інформацію про авто. Пасажири можуть переглядати каталог та бронювати авто на певний час.'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/patsu.rar/CarRent/3.0.0  
+tags:
+  - name: car
+    description: Operations with cars
+  - name: order
+    description: Operations with orders
+  - name: user
+    description: Operations with users
+  - name: auth
+    description: authenticating operations
+paths:
+  /cars:
+    get:
+      tags:
+      - car
+      summary: Get all cars
+      description: Getting of all existing cars
+      operationId: getCars
+      responses:
+        200:
+          description: "successful operation. Return list of all cars"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: '#/components/schemas/Car'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'          
+      security:
+      - bearerAuth: []
+      
+  /car:
+    post:
+      tags:
+      - car
+      summary: Add new car
+      operationId: addCar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Car'
+      responses:
+        200:
+          description: "successful operation. Car is added"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'     
+      security:
+      - bearerAuth: []
+          
+  /car/{carId}: 
+    get:
+      tags:
+      - car
+      summary: Get car by id
+      operationId: getCarById
+      parameters:
+      - name: carId
+        in: path
+        required: true
+        description: 'The car id that needs to retrieved.'
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'          
+        404:
+          description: A car with provided ID was not found.
+      security:
+      - bearerAuth: []
+    
+    delete:
+      tags:
+      - car
+      summary: Delete car
+      description: Deleting existing car from the catalogue
+      operationId: deleteCar
+      parameters:
+      - name: carId
+        in: path
+        required: true
+        description: 'The car id that needs to be updated.'
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description:  "successful operation. Car object deleted"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: Car is not found.
+      security:
+      - bearerAuth: []
+      
+    put:
+      tags:
+      - car
+      summary: Update your car
+      operationId: updateCar
+      parameters:
+      - name: carId
+        in: path
+        required: true
+        description: 'The car id that needs to be updated.'
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: 'Updated car object.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Car'
+        required: true
+      responses:
+        200:
+          description:  "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Car'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: Car is not found.
+      security:
+      - bearerAuth: []
+
+  /order:
+    post:
+      tags:
+      - order
+      summary: Add new order
+      operationId: addOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        200:
+          description: "successful operation. Order is added"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'     
+      security:
+      - bearerAuth: []
+  
+  /order/{orderId}:
+    get:
+      tags:
+      - order
+      summary: Get order by id
+      operationId: getOrderById
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        description: 'The order id that needs to retrieved.'
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'          
+        404:
+          description: An order with provided ID was not found.
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - order
+      summary: Cancel the order
+      description: Deleting existing order from the order list
+      operationId: cancelOrder
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        description: 'The order id that needs to be updated.'
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description:  "successful operation. Order canceled"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: Order is not found.
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - order
+      summary: Update your order
+      operationId: updateOrder
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        description: 'The order id that needs to be updated.'
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: 'Updated order object.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      responses:
+        200:
+          description:  "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: Order is not found.
+      security:
+      - bearerAuth: []
+  
+  /user/{userId}:
+    get:
+      tags:
+      - user
+      summary: Get user by id
+      description: Get information about user with provided ID
+      operationId: getUserById
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        description: 'The user id that needs to be fetched.'
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'          
+        404:
+          description: A user with provided ID was not found.
+      security:
+      - bearerAuth: []
+    put:
+      tags:
+      - user
+      summary: Update your account
+      description: Updating is only applicable to owner's account
+      operationId: updateUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        description: 'The user id that needs to be updated.'
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: 'Updated user object.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        200:
+          description:  "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        404:
+          description: User is not found.
+      security:
+      - bearerAuth: []
+  
+  /auth/register:
+    post:
+      tags:
+      - auth
+      summary: Register new user
+      operationId: registerUser
+      requestBody:
+        description: User with data to be registered
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        200:
+          description: "successful operation. User is registered"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: "User with such username already exists"
+      
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Logs in user with provided credentials
+      operationId: loginUser
+      parameters:
+      - name: username
+        in: query
+        description: The username
+        required: true
+        schema:
+          type: string
+      - name: password
+        in: query
+        description: The user's password (plain text)
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: "successful operation. JWT Token is returned" 
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        401:
+          $ref: '#/components/responses/InvalidCredentialsError'
+  
+  /auth/logout:
+    post:
+      tags:
+      - auth
+      summary: Logs current user out of session
+      operationId: logoutUser
+      responses:
+        200:
+          description: "successful operation"
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+      - bearerAuth: []
+  
+components:
+  schemas:
+    User:
+      required:
+      - id
+      - username
+      - password
+      - name
+      - surname
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        surname:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    Car:
+      required:
+      - brand
+      - model
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        model:
+          type: string
+        brand:
+          type: string
+        status:
+          type: string
+          description: pet status in the store
+          enum:
+          - available
+          - reserved
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        carId:
+          type: integer
+          format: int64
+        beginningDate:
+          type: string
+          format: date-time
+        amountOfDays:
+          type: integer
+          format: int32
+        complete:
+          type: boolean
+          default: false
+    
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: "JWT token was not provided or it is invalid"
+    InvalidCredentialsError:
+      description: "Provided credentials are invalid"
