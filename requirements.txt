@@ -9,3 +9,4 @@ typing-extensions==3.10.0.2
 uWSGI==2.0.19.1
 Werkzeug==2.0.1
 zipp==3.5.0
+SQLAlchemy~=1.4.26
