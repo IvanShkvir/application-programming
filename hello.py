@@ -1,17 +1,12 @@
 from flask import Flask
+from waitress import serve
+from flask_bcrypt import Bcrypt
+from app import api_blueprint
 
-app = Flask(__name__)
-
-
-@app.route("/")
-def index():
-    return r"<a href='api/v1/hello-world-29'><h1>api/v1/hello-world-29</h1></a>"
-
-
-@app.route("/api/v1/hello-world-29")
-def hello_world():
-    return r"<h1>Hello World 29!</h1>"
+api = Flask(__name__)
+api.register_blueprint(api_blueprint)
+bcrypt = Bcrypt(api)
 
 
-if __name__ == '__main__':
-    app.run()
+if __name__ == "__main__":
+    serve(api, port=5000)
