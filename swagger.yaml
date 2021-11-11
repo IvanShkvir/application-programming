@@ -151,7 +151,7 @@ paths:
       security:
       - bearerAuth: []
 
-  /order:
+  /orders:
     post:
       tags:
       - order
@@ -441,6 +441,9 @@ components:
           type: integer
           format: int64
         carId:
+          type: integer
+          format: int64
+        userId:
           type: integer
           format: int64
         beginningDate:
