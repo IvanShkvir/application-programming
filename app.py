@@ -1,3 +1,5 @@
+import datetime
+
 from flask import jsonify, request
 from schemes import *
 from models import *
@@ -119,7 +121,9 @@ def create_car():
         return {"message": "You can not set id"}, 400
     if not json_car_data:
         return {"message": "Empty request body"}, 400
-
+    if 'status' in json_car_data:
+        if get_value_from_json(json_car_data, 'status') == "reserved":
+            return {"message": "You cannot create already reserved car"}, 400
     try:
         car_data = CarSchema().load(json_car_data)
     except ValidationError as err:
@@ -146,6 +150,8 @@ def update_car(id):
     json_car_data = request.get_json()
     if 'id' in json_car_data:
         return {"message": "You can not change id"}, 400
+    if 'status' in json_car_data:
+        return {"message": "You can not change status of car without order"}, 400
     if not json_car_data:
         return {"message": "Empty request body"}, 400
 
@@ -190,6 +196,9 @@ def create_order():
 
     if get_value_from_json(json_order_data, "is_complete"):
         return {"message": "Cannot create already completed order"}, 400
+
+    if datetime.datetime.strptime(get_value_from_json(json_order_data, "end_date"), "%Y-%m-%d") < datetime.datetime.strptime(get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
+        return {"message": "Invalid date range"}, 400
 
     try:
         order_data = OrderSchema().load(json_order_data)
@@ -263,6 +272,11 @@ def update_order(id):
         if 'is_complete' in json_order_data:
             if get_value_from_json(json_order_data, 'is_complete'):
                 setattr(car_find, "status", "available")
+    if 'end_time' in json_order_data and 'start_time' in json_order_data:
+        if datetime.datetime.strptime(get_value_from_json(json_order_data, "end_date"),
+                                      "%Y-%m-%d") < datetime.datetime.strptime(
+                get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
+            return {"message": "Invalid date range"}, 400
 
     for key, value in json_order_data.items():
         setattr(order, key, value)
@@ -273,17 +287,16 @@ def update_order(id):
 
 @api_blueprint.route('/user/login', methods=['POST'])
 def login():
-    user_data = request.get_json()
-    if not user_data:
+    json_user_data = request.get_json()
+    if not json_user_data:
         return {"message": "Empty request body"}, 400
 
-    user_find = s.query(User).filter_by(name=user_data['username']).first()
+    user_find = s.query(User).filter_by(name=json_user_data['username']).first()
     if not user_find:
         return {"message": "User with such username does not exists"}, 404
 
-    if not Bcrypt().check_password_hash(user_find.password, user_data['password']):
+    if not Bcrypt().check_password_hash(user_find.password, json_user_data['password']):
         return {"message": "Provided credentials are invalid"}, 400
 
-    result = UserSchema().dump(user_find)
-    return jsonify(result)
-
+    serialized_user = UserSchema().dump(user_find)
+    return jsonify(serialized_user)
