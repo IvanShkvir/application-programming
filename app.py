@@ -66,7 +66,7 @@ def update_user(id):
         return {"message": "User with provided id does not exists"}, 400
 
     if 'username' in json_user_data:
-        user_check_username = s.query(User).filter_by(name=json_user_data['name']).first()
+        user_check_username = s.query(User).filter_by(username=json_user_data['username']).first()
         if user_check_username:
             return {"message": "User with provided username already exists"}, 400
 
@@ -267,11 +267,14 @@ def update_order(id):
         car_find = s.query(Car).filter_by(id=json_order_data['car_id']).first()
         if not car_find:
             return {"message": "Car with provided id does not exist"}, 404
-        if car_find.status == "reserved":
+        if car_find.status == "reserved" and order.car_id != car_find.id:
             return {"message": "Car is already reserved"}, 400
-        if 'is_complete' in json_order_data:
-            if get_value_from_json(json_order_data, 'is_complete'):
-                setattr(car_find, "status", "available")
+    car_from_order = s.query(Car).filter_by(id=Order.car_id).first()
+    if 'is_complete' in json_order_data:
+        if get_value_from_json(json_order_data, 'is_complete'):
+            setattr(car_from_order, "status", "available")
+        else:
+            setattr(car_find, "status", "reserved")
     if 'end_time' in json_order_data and 'start_time' in json_order_data:
         if datetime.datetime.strptime(get_value_from_json(json_order_data, "end_date"),
                                       "%Y-%m-%d") < datetime.datetime.strptime(
