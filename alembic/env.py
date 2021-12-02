@@ -24,9 +24,9 @@ current_path = os.path.dirname(os.path.abspath(__file__))
 ROOT_PATH = os.path.join(current_path, '..')
 sys.path.append(ROOT_PATH)
 
-from models import *
-
+from models import Base
 target_metadata = Base.metadata
+# print(target_metadata.tables)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -65,9 +65,10 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = engine
+    engine = engine_from_config(
+        config.get_section(config.config_ini_section), prefix='sqlalchemy.', poolclass=pool.NullPool)
 
-    with connectable.connect() as connection:
+    with engine.connect() as connection:
         context.configure(
             connection=connection, target_metadata=target_metadata
         )
