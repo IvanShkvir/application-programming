@@ -1,10 +1,13 @@
+from datetime import datetime
+
 from sqlalchemy import ForeignKey, INTEGER, Column, String, Enum, Boolean, DateTime, create_engine, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
+from config.config import conn_string
 
 Base = declarative_base()
-engine = create_engine("mysql+pymysql://root:password@localhost:3306/api_db", echo=True)
+engine = create_engine(conn_string, echo=True)
 
 
 class User(Base):
@@ -46,3 +49,13 @@ class Car(Base):
 
     def __repr__(self):
         return f"{self.id}, {self.model}, {self.brand}, {self.status}, {self.price}"
+
+
+class TokenBlockList(Base):
+    __tablename__ = "token_block_list"
+
+    id = Column(INTEGER, primary_key=True)
+    jti = Column(String(36), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.now())
+
+# Base.metadata.create_all(engine)
