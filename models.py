@@ -58,4 +58,5 @@ class TokenBlockList(Base):
     jti = Column(String(36), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.now())
 
+
 # Base.metadata.create_all(engine)
