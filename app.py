@@ -237,7 +237,8 @@ def create_order():
     if get_value_from_json(json_order_data, "is_complete"):
         return {"message": "Cannot create already completed order"}, 400
 
-    if datetime.strptime(get_value_from_json(json_order_data, "end_date"), "%Y-%m-%d") < datetime.strptime(get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
+    if datetime.strptime(get_value_from_json(json_order_data, "end_date"), "%Y-%m-%d") < datetime.strptime(
+            get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
         return {"message": "Invalid date range"}, 400
 
     try:
@@ -273,12 +274,12 @@ def create_order():
 @api_blueprint.route('/order/<int:id>', methods=['GET'])
 @jwt_required()
 def get_order(id):
-    order = s.query(Order).filter_by(id=id).first()
+    order = s.query(Order).filter(Order.id == id).first()
     if not order:
         return {"message": "Order with provided id does not exist"}, 404
     username_from_identity = get_jwt_identity()
     if username_from_identity != s.query(User.username).filter(User.id == order.user_id).scalar():
-        return {"message": "You can't delete not your orders"}, 403
+        return {"message": "You can't check not your orders"}, 403
     serialized_order = CarSchema().dump(order)
     return jsonify(serialized_order)
 
@@ -317,13 +318,14 @@ def update_order(id):
         return err.messages, 400
 
     username_from_identity = get_jwt_identity()
-    order = s.query(Order).filter_by(id=id).first()
+    order = s.query(Order).filter(Order.id == id).first()
 
     if 'user_id' in json_order_data:
         user_find = s.query(User).filter_by(id=json_order_data['user_id']).first()
         if not user_find:
             return {"message": "User with provided id does not exist"}, 404
-    if username_from_identity != s.query(User.username).filter(User.id == order.user_id).one_or_none():
+
+    if username_from_identity != s.query(User.username).filter(User.id == order.user_id).one_or_none()[0]:
         return {"message": "You can't update not your orders"}, 403
 
     if 'car_id' in json_order_data:
@@ -341,7 +343,7 @@ def update_order(id):
     if 'end_time' in json_order_data and 'start_time' in json_order_data:
         if datetime.datetime.strptime(get_value_from_json(json_order_data, "end_date"),
                                       "%Y-%m-%d") < datetime.datetime.strptime(
-                get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
+            get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
             return {"message": "Invalid date range"}, 400
 
     for key, value in json_order_data.items():
@@ -354,10 +356,12 @@ def update_order(id):
 @api_blueprint.route('/auth/login', methods=['POST'])
 def login():
     auth = request.authorization
+    print(auth)
     if not auth or not auth.username or not auth.password:
         return {"message": "Incorrect authorization headers"}, 401
 
-    user = s.query(User).filter_by(name=auth.username).first()
+    user = s.query(User).filter(User.username == auth.username).first()
+
     if not user:
         return {"message": "User with such username does not exists"}, 404
 
