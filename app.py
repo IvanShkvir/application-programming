@@ -22,6 +22,8 @@ s: Session = session()
 def create_user():
     json_user_data = request.get_json()
 
+    json_user_data['role'] = 'customer'
+
     if 'id' in json_user_data:
         return {"message": "You can not set id"}, 400
     if 'role' not in json_user_data:
@@ -61,23 +63,20 @@ def get_user(id):
     return jsonify(serialized_user)
 
 
-@api_blueprint.route('/user/<int:id>', methods=['PUT'])
+@api_blueprint.route('/user', methods=['PUT'])
 @jwt_required()
-def update_user(id):
+def update_user():
     json_user_data = request.get_json()
     if not json_user_data:
         return {"message": "Empty request body"}, 400
     if 'id' in json_user_data:
         return {"message": "You can not change id"}, 400
 
-    username_from_identity = get_jwt_identity()
+    user_id = get_jwt_identity()
 
-    user = s.query(User).filter_by(id=id).first()
+    user = s.query(User).filter_by(id=user_id).first()
     if not user:
         return {"message": "User with provided id does not exists"}, 400
-
-    if user.username != username_from_identity:
-        return {"message": "You can't update not your user"}, 403
 
     if 'username' in json_user_data:
         user_check_username = s.query(User).filter_by(username=json_user_data['username']).first()
@@ -95,7 +94,7 @@ def update_user(id):
 
         setattr(user, key, value)
     s.commit()
-    user_find = s.query(User).filter_by(id=id).first()
+    user_find = s.query(User).filter_by(id=user_id).first()
     serialized_user = UserSchema().dump(user_find)
     return jsonify(serialized_user)
 
@@ -368,7 +367,7 @@ def login():
     if not check_password_hash(user.password, auth.password):
         return {"message": "Provided credentials are invalid"}, 401
 
-    return jsonify({"token": create_access_token(identity=user.username)})
+    return jsonify({"token": create_access_token(identity=user.id)})
 
 
 @api_blueprint.route('/auth/logout', methods=['POST'])
