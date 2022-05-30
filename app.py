@@ -367,7 +367,10 @@ def login():
     if not check_password_hash(user.password, auth.password):
         return {"message": "Provided credentials are invalid"}, 401
 
-    return jsonify({"token": create_access_token(identity=user.id)})
+    response_user = user.__dict__
+    del response_user['_sa_instance_state'], response_user['role'], response_user['password']
+    print(response_user)
+    return jsonify({"token": create_access_token(identity=user.id), "user": response_user})
 
 
 @api_blueprint.route('/auth/logout', methods=['POST'])

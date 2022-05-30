@@ -16,6 +16,7 @@ class CarSchema(Schema):
     brand = fields.Str()
     status = fields.Str(validate=validate.OneOf(["reserved", "available"]))
     price = fields.Int()
+    image = fields.Str()
 
 
 class OrderSchema(Schema):

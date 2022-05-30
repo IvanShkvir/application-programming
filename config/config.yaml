@@ -1,5 +1,5 @@
 user: root
-password: 5101
+password: root
 host: localhost
 port: 3306
-db_name: db_vanya
+db_name: vanya_db

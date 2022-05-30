@@ -46,9 +46,10 @@ class Car(Base):
     brand = Column(String(45), nullable=False)
     status = Column(Enum('available', 'reserved'))
     price = Column(INTEGER, nullable=False)
+    image = Column(String(200),nullable=False)
 
     def __repr__(self):
-        return f"{self.id}, {self.model}, {self.brand}, {self.status}, {self.price}"
+        return f"{self.id}, {self.model}, {self.brand}, {self.status}, {self.price},{self.image}"
 
 
 class TokenBlockList(Base):
