@@ -164,7 +164,11 @@ def create_car():
 @api_blueprint.route('/car/<int:id>', methods=['GET'])
 @jwt_required()
 def get_car(id):
-    car = s.query(Car).filter_by(id=id).first()
+    new_session = sessionmaker(bind=engine)
+    ss: Session = new_session()
+
+    car = ss.query(Car).filter_by(id=id).first()
+
     if not car:
         return {"message": "Car with provided id does not exist"}, 404
     serialized_car = CarSchema().dump(car)
@@ -227,7 +231,7 @@ def delete_car(id):
 @jwt_required()
 def create_order():
     json_order_data = request.get_json()
-
+    print(json_order_data)
     if 'id' in json_order_data:
         return {"message": "You can not set id"}, 400
     if not json_order_data:
@@ -236,8 +240,8 @@ def create_order():
     if get_value_from_json(json_order_data, "is_complete"):
         return {"message": "Cannot create already completed order"}, 400
 
-    if datetime.strptime(get_value_from_json(json_order_data, "end_date"), "%Y-%m-%d") < datetime.strptime(
-            get_value_from_json(json_order_data, "start_date"), "%Y-%m-%d"):
+    if datetime.strptime(get_value_from_json(json_order_data, "end_date")[:10], "%Y-%m-%d") < datetime.strptime(
+            get_value_from_json(json_order_data, "start_date")[:10], "%Y-%m-%d"):
         return {"message": "Invalid date range"}, 400
 
     try:
@@ -252,7 +256,7 @@ def create_order():
     if not user_find:
         return {"message": "User with provided id does not exist"}, 404
 
-    if username_from_identity != user_find.username:
+    if username_from_identity != user_find.id:
         return {"message": "You can't create order not for your user"}, 403
 
     if not car_find:
@@ -283,6 +287,23 @@ def get_order(id):
     return jsonify(serialized_order)
 
 
+@api_blueprint.route('/orders/user', methods=['GET'])
+@jwt_required()
+def get_user_orders():
+    new_session = sessionmaker(bind=engine)
+    ss: Session = new_session()
+
+    user_id = get_jwt_identity()
+    orders = ss.query(Order).filter(Order.user_id == user_id).all()
+
+    result = []
+    for order in orders:
+        new_order = order.__dict__
+        del new_order['_sa_instance_state']
+        result.append(new_order)
+    return jsonify(result)
+
+
 @api_blueprint.route('/order/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_order(id):
@@ -292,7 +313,7 @@ def delete_order(id):
     if not order:
         return {"message": "Order with provided id does not exist"}, 404
 
-    if username_from_identity != s.query(User.username).filter(User.id == order.user_id).scalar():
+    if username_from_identity != order.user_id:
         return {"message": "You can't delete not your orders"}, 403
 
     car_find = s.query(Car).filter_by(id=order.car_id).first()
@@ -324,7 +345,7 @@ def update_order(id):
         if not user_find:
             return {"message": "User with provided id does not exist"}, 404
 
-    if username_from_identity != s.query(User.username).filter(User.id == order.user_id).one_or_none()[0]:
+    if username_from_identity != json_order_data.get('user_id'):
         return {"message": "You can't update not your orders"}, 403
 
     if 'car_id' in json_order_data:

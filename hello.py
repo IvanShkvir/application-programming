@@ -12,7 +12,11 @@ ACCESS_EXPIRES = timedelta(hours=1)
 
 app = Flask(__name__)
 CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config["JWT_SECRET_KEY"] = "super-secret"
+app.config['SQLALCHEMY_POOL_RECYCLE'] = 280
+app.config['SQLALCHEMY_POOL_TIMEOUT'] = 10
+app.config['SQLALCHEMY_POOL_PRE_PING'] = True
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
 app.register_blueprint(api_blueprint)
 bcrypt = Bcrypt(app)
